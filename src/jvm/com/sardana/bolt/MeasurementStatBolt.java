@@ -41,6 +41,7 @@ public class MeasurementStatBolt extends BaseRichBolt {
         // check if the drone is present in the map
         if (droneMap == null) {
             droneMap = new HashMap<>();
+            countMap.put(droneId, droneMap);
         }
 
         Integer count = droneMap.get(second);
@@ -48,9 +49,8 @@ public class MeasurementStatBolt extends BaseRichBolt {
             count = 0;
         }
         droneMap.put(second, ++count);
-        countMap.put(droneId, droneMap);
 
-        // emit the droneId and count
+        // emit the droneId and count per second
         collector.emit(new Values(droneId, second, count));
     }
 
