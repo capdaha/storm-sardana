@@ -23,7 +23,7 @@ import java.util.Scanner;
  */
 public class MeasurementSpout extends BaseRichSpout {
     private SpoutOutputCollector collector;
-    private String fileName = "C:/Java/apache-storm-1.0.2/examples/storm-sardana/src/main/resources/test-dataset.json";
+    private final String fileName = "C:/Java/apache-storm-1.0.2/examples/storm-sardana/src/main/resources/test-dataset.json";
     private List<Measurement> measurements;
     private int index = 0;
 

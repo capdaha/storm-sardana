@@ -11,6 +11,7 @@ import org.apache.storm.tuple.Values;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Sardana
@@ -20,7 +21,7 @@ public class MeasurementStatBolt extends BaseRichBolt {
 
     private OutputCollector collector;
 
-    private Map<String, Map<Integer, Integer>> countMap;
+    private Map<String, Map<Long, Integer>> countMap;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -34,9 +35,8 @@ public class MeasurementStatBolt extends BaseRichBolt {
         Measurement measurement = (Measurement) input.getValue(1);
         Long timeStamp = measurement.getMeasurementTimestamp();
 
-        int second = (int) Long.divideUnsigned(timeStamp, MILLIS_IN_SEC);
-
-        Map<Integer, Integer> droneMap = countMap.get(droneId);
+        long second = TimeUnit.MILLISECONDS.toSeconds(timeStamp);
+        Map<Long, Integer> droneMap = countMap.get(droneId);
 
         // check if the drone is present in the map
         if (droneMap == null) {
