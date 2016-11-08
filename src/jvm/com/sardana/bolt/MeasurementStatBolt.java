@@ -16,9 +16,11 @@ import java.util.Map;
  * @author Sardana
  */
 public class MeasurementStatBolt extends BaseRichBolt {
+    private static final int MILLIS_IN_SEC = 1000;
+
     private OutputCollector collector;
 
-    private Map<String, Integer> countMap;
+    private Map<String, Map<Integer, Integer>> countMap;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -29,21 +31,31 @@ public class MeasurementStatBolt extends BaseRichBolt {
     @Override
     public void execute(Tuple input) {
         String droneId = input.getString(0);
-        //Measurement measurement = (Measurement) input.getValue(1);
+        Measurement measurement = (Measurement) input.getValue(1);
+        Long timeStamp = measurement.getMeasurementTimestamp();
 
-        Integer count = countMap.get(droneId);
-        // check if the word is present in the map
+        int second = (int) Long.divideUnsigned(timeStamp, MILLIS_IN_SEC);
+
+        Map<Integer, Integer> droneMap = countMap.get(droneId);
+
+        // check if the drone is present in the map
+        if (droneMap == null) {
+            droneMap = new HashMap<>();
+        }
+
+        Integer count = droneMap.get(second);
         if (count == null) {
             count = 0;
         }
-        countMap.put(droneId, ++count);
+        droneMap.put(second, ++count);
+        countMap.put(droneId, droneMap);
 
         // emit the droneId and count
-        collector.emit(new Values(droneId, countMap.get(droneId)));
+        collector.emit(new Values(droneId, second, count));
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("droneId", "count"));
+        declarer.declare(new Fields("droneId", "second", "count"));
     }
 }
