@@ -1,6 +1,7 @@
 package com.sardana.bolt;
 
 import com.sardana.object.Measurement;
+import org.apache.log4j.Logger;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -17,10 +18,9 @@ import java.util.concurrent.TimeUnit;
  * @author Sardana
  */
 public class MeasurementStatBolt extends BaseRichBolt {
-    private static final int MILLIS_IN_SEC = 1000;
+    private static final Logger LOGGER = Logger.getLogger(MeasurementStatBolt.class);
 
     private OutputCollector collector;
-
     private Map<String, Map<Long, Integer>> countMap;
 
     @Override
@@ -52,6 +52,8 @@ public class MeasurementStatBolt extends BaseRichBolt {
 
         // emit the droneId and count per second
         collector.emit(new Values(droneId, second, count));
+        LOGGER.info(new StringBuilder("New count per second for drone with id: ").append(droneId)
+                .append(", second: ").append(second).append(", count: ").append(count).toString());
     }
 
     @Override

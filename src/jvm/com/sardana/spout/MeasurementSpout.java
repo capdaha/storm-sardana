@@ -2,6 +2,7 @@ package com.sardana.spout;
 
 import com.sardana.object.Measurement;
 import com.sardana.util.JsonParser;
+import org.apache.log4j.Logger;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -22,14 +23,17 @@ import java.util.Scanner;
  * @author Sardana
  */
 public class MeasurementSpout extends BaseRichSpout {
+    public static final String FILE_NAME_CONFIG = "measurement_spout_filename";
+    private static final Logger LOGGER = Logger.getLogger(MeasurementSpout.class);
+
     private SpoutOutputCollector collector;
-    private final String fileName = "C:/Java/apache-storm-1.0.2/examples/storm-sardana/src/main/resources/test-dataset.json";
     private List<Measurement> measurements;
     private int index = 0;
 
     @Override
     public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
         this.collector = collector;
+        String fileName = (String) conf.get(FILE_NAME_CONFIG);
         measurements = readMeasurements(fileName);
     }
 
@@ -41,6 +45,7 @@ public class MeasurementSpout extends BaseRichSpout {
         }
         Measurement m = measurements.get(index++);
         collector.emit(new Values(m.getValue().getDroneId(), m));
+        LOGGER.info("New measurement for drone with id: " + m.getValue().getDroneId());
     }
 
     @Override
@@ -61,12 +66,11 @@ public class MeasurementSpout extends BaseRichSpout {
                     Measurement m = (Measurement) parser.parseJson(line);
                     measurements.add(m);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Error in parsing JSON: " + e.getMessage());
                 }
             }
         } catch (FileNotFoundException e) {
-            // TODO: Change to logger
-            e.printStackTrace();
+            LOGGER.error("Error in reading file: " + e.getMessage());
         }
         return measurements;
     }

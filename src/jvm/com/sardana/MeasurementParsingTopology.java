@@ -14,6 +14,10 @@ import org.apache.storm.tuple.Fields;
 public class MeasurementParsingTopology {
 
     public static void main(String[] args) throws Exception {
+        String fileName = args[0];
+        if (fileName == null) {
+            throw new Exception("The dataset file is not specified.");
+        }
         TopologyBuilder builder = new TopologyBuilder();
 
         // set the number of tasks to one, for the spout reads from one file
@@ -23,14 +27,10 @@ public class MeasurementParsingTopology {
         StormTopology topology = builder.createTopology();
 
         Config conf = new Config();
-        conf.setDebug(true);
+        conf.put(MeasurementSpout.FILE_NAME_CONFIG, fileName);
+        conf.setDebug(false);
+        conf.setMaxTaskParallelism(2);
 
-        if (args != null && args.length > 0) {
-            conf.setNumWorkers(2);
-            StormRunner.runTopologyRemotely(topology, args[0], conf);
-        } else {
-            conf.setMaxTaskParallelism(2);
-            StormRunner.runTopologyLocally(topology, "measurement-parsing-topology", conf, 30);
-        }
+        StormRunner.runTopologyLocally(topology, "measurement-parsing-topology", conf, 30);
     }
 }
